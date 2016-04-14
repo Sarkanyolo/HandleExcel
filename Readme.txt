@@ -1,6 +1,6 @@
 Welcome,
 
-The purpose of this class is to make Excel file handling easy (also works as DLL file).
+The purpose of this class is to make Excel file handling easy in C# (also works as DLL file).
 Works with XLS and XLSX formats also.
 
 Requirement:
