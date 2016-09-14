@@ -27,21 +27,24 @@ namespace HandleExcel {
     public enum HeaderPosition {
         Left,
         Right,
-        Center
+        Center,
+        Default
     }
 
     public enum FooterPosition {
         Left,
         Right,
-        Center
+        Center,
+        Default
     }
 
     public enum Orientations {
         Portrait,
-        Landscape
+        Landscape,
+        Default
     }
 
-    public sealed class HandleExcel {
+    public sealed class HandleExcel : IDisposable {
         private Excel.Application XlApplication;
         private Excel.Workbook XlWorkbook;
         private Excel.Worksheet XlWorksheet;
@@ -104,10 +107,8 @@ namespace HandleExcel {
         }
 
         public void DeleteRange(int Row = 0, int Column = 0, int EndRow = 0, int EndColumn = 0) {
-            if (Row > 0 && Column > 0) {
-                X = Row;
-                Y = Column;
-            }
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
             string r = IndexToLetter(Y) + X.ToString();
             if (EndRow > 0 && EndColumn > 0) {
                 r = r + ":" + IndexToLetter(EndColumn) + EndRow.ToString();
@@ -117,10 +118,8 @@ namespace HandleExcel {
         }
 
         public string GetCell(int Row = 0, int Column = 0) {
-            if (Row > 0 && Column > 0) {
-                X = Row;
-                Y = Column;
-            }
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
             string t = (string)(XlWorksheet.Cells[X, Y] as Excel.Range).Text;
             if (t != null) return t;
             return string.Empty;
@@ -174,26 +173,30 @@ namespace HandleExcel {
         }
 
         public void SetCell(string Val, int Row = 0, int Column = 0) {
-            if (Row > 0 && Column > 0) {
-                X = Row;
-                Y = Column;
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
+            if (string.IsNullOrEmpty(Val)) {
+                XlWorksheet.Cells[X, Y] = string.Empty;
+            } else {
+                XlWorksheet.Cells[X, Y] = Val;
             }
-            XlWorksheet.Cells[X, Y] = Val;
         }
 
         public void SetCell(int Val, int Row = 0, int Column = 0) {
-            if (Row > 0 && Column > 0) {
-                X = Row;
-                Y = Column;
-            }
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
             XlWorksheet.Cells[X, Y] = Val;
         }
 
+        public void SetCell(int? Val, int Row = 0, int Column = 0) {
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
+            XlWorksheet.Cells[X, Y] = Val.GetValueOrDefault();
+        }
+
         public void SetFormula(string formula, int Row = 0, int Column = 0, int EndRow = 0, int EndColumn = 0) {
-            if (Row > 0 && Column > 0) {
-                X = Row;
-                Y = Column;
-            }
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
             string r = IndexToLetter(Y) + X.ToString();
             if (EndRow > 0 && EndColumn > 0) {
                 r = r + ":" + IndexToLetter(EndColumn) + EndRow.ToString();
@@ -202,11 +205,9 @@ namespace HandleExcel {
             XlRange.Formula = formula;
         }
 
-        public void SetFormat(int Row = 0, int Column = 0, int EndRow = 0, int EndColumn = 0, bool Bold = false, bool Italic = false, int Size = 0, bool AutoFit = false, bool WrapText = false, Align Align = Align.Left, int BGColor = -1, string FontName = "") {
-            if (Row > 0 && Column > 0) {
-                X = Row;
-                Y = Column;
-            }
+        public void SetFormat(int Row = 0, int Column = 0, int EndRow = 0, int EndColumn = 0, bool? Bold = null, bool? Italic = null, int Size = 0, bool AutoFit = false, bool? WrapText = null, Align Align = Align.Left, int BGColor = -1, string FontName = "") {
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
             string r = IndexToLetter(Y) + X.ToString();
             if (EndRow > 0 && EndColumn > 0) {
                 r = r + ":" + IndexToLetter(EndColumn) + EndRow.ToString();
@@ -229,17 +230,15 @@ namespace HandleExcel {
             if (BGColor != -1) XlRange.Interior.ColorIndex = BGColor;
             if (FontName != "") XlRange.Font.Name = FontName;
 
-            XlRange.WrapText = WrapText;
+            if (WrapText != null) XlRange.WrapText = WrapText;
             XlRange = XlApplication.Range[r];
-            XlRange.Font.Bold = Bold;
-            XlRange.Font.Italic = Italic;
+            if (Bold != null) XlRange.Font.Bold = Bold;
+            if (Italic != null) XlRange.Font.Italic = Italic;
         }
 
         public void SetBorder(int Row = 0, int Column = 0, int EndRow = 0, int EndColumn = 0, int BorderWeight = 0, Border Border = Border.All) {
-            if (Row > 0 && Column > 0) {
-                X = Row;
-                Y = Column;
-            }
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
             string r = IndexToLetter(Y) + X.ToString();
             if (EndRow > 0 && EndColumn > 0) {
                 r = r + ":" + IndexToLetter(EndColumn) + EndRow.ToString();
@@ -274,11 +273,14 @@ namespace HandleExcel {
             SetCell(Val);
         }
 
+        public void SetNextCell(int? Val) {
+            Y++;
+            SetCell(Val);
+        }
+
         public void SetNumberFormat(string NumberFormat, int Row = 0, int Column = 0, int EndRow = 0, int EndColumn = 0) {
-            if (Row > 0 && Column > 0) {
-                X = Row;
-                Y = Column;
-            }
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
             string r = IndexToLetter(Y) + X.ToString();
             if (EndRow > 0 && EndColumn > 0) {
                 r = r + ":" + IndexToLetter(EndColumn) + EndRow.ToString();
@@ -288,10 +290,8 @@ namespace HandleExcel {
         }
 
         public void MergeCells(int Row = 0, int Column = 0, int EndRow = 0, int EndColumn = 0, bool Merge = true) {
-            if (Row > 0 && Column > 0) {
-                X = Row;
-                Y = Column;
-            }
+            if (Row > 0) { X = Row; }
+            if (Column > 0) { Y = Column; }
             string r = IndexToLetter(Y) + X.ToString();
             if (EndRow > 0 && EndColumn > 0) {
                 r = r + ":" + IndexToLetter(EndColumn) + EndRow.ToString();
@@ -304,14 +304,12 @@ namespace HandleExcel {
             }
         }
 
-        public void PageSetup(Orientations Orientation = Orientations.Portrait, double LeftMargin = 50.0, double RightMargin = 50.0, double TopMargin = 55.0, double BottomMargin = 55.0, FooterPosition FooterPosition = FooterPosition.Left, string FooterText = "", HeaderPosition HeaderPosition = HeaderPosition.Left, string HeaderText = "") {
+        public void PageSetup(Orientations Orientation = Orientations.Default, double LeftMargin = 50.0, double RightMargin = 50.0, double TopMargin = 55.0, double BottomMargin = 55.0, FooterPosition FooterPosition = FooterPosition.Default, string FooterText = "", HeaderPosition HeaderPosition = HeaderPosition.Default, string HeaderText = "") {
             Excel.PageSetup pageSetup = XlWorksheet.PageSetup;
-            if (Orientation != Orientations.Portrait) {
-                if (Orientation == Orientations.Landscape) {
-                    pageSetup.Orientation = Excel.XlPageOrientation.xlLandscape;
-                }
-            } else {
+            if (Orientation == Orientations.Portrait) {
                 pageSetup.Orientation = Excel.XlPageOrientation.xlPortrait;
+            } else if (Orientation == Orientations.Landscape) {
+                pageSetup.Orientation = Excel.XlPageOrientation.xlLandscape;
             }
             pageSetup.LeftMargin = LeftMargin;
             pageSetup.RightMargin = RightMargin;
@@ -383,8 +381,8 @@ namespace HandleExcel {
         }
 
         public System.Data.DataTable CopyToDt(int rownum = 0, int colnum = 0) {
-            if (rownum == 0) rownum = this.GetRowCount;
-            if (colnum == 0) colnum = this.GetColumnCount;
+            if (rownum == 0) { rownum = this.GetRowCount; }
+            if (colnum == 0) { colnum = this.GetColumnCount; }
             string r = IndexToLetter(1) + 1.ToString();
             if (rownum > 0 && colnum > 0) r += ":" + IndexToLetter(colnum) + rownum.ToString();
             XlRange = XlApplication.Range[r];
@@ -421,8 +419,8 @@ namespace HandleExcel {
             }
         }
 
-        public void ToNextCell() {
-            Y++;
+        public void ToNextCell(int Columns = 1) {
+            Y += Columns;
         }
 
         public void ToNewLine(int Rows = 1) {
@@ -432,7 +430,11 @@ namespace HandleExcel {
 
         #region Internal functions
         ~HandleExcel() {
-            if (closeFlag) Close();
+            Close();
+        }
+
+        public void Dispose() {
+            Close();
         }
 
         private void MsgboxOrWrite(string text, string title = "", System.Windows.MessageBoxImage icon = System.Windows.MessageBoxImage.None) {
