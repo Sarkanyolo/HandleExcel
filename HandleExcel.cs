@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Excel handling class
 * Excel reference needs to be added to the project:
 * Project -> Add Reference -> .NET -> Microsoft.Office.Interop.Excel -> Choose 2.0 Version
@@ -67,9 +67,9 @@ namespace HandleExcel {
             XlApplication = new Excel.Application();
             XlApplication.Visible = false;
             XlApplication.DisplayAlerts = false;
-            if (Password != "") {
+            if (!string.IsNullOrEmpty(Password)) {
                 XlWorkbook = XlApplication.Workbooks.Open(Path, Password: Password);
-            } else if (Path != "") {
+            } else if (!string.IsNullOrEmpty(Path)) {
                 XlWorkbook = XlApplication.Workbooks.Open(Path);
             } else {
                 XlWorkbook = XlApplication.Workbooks.Add();
@@ -81,16 +81,24 @@ namespace HandleExcel {
             closeFlag = true;
         }
 
-        public void AddTab(string Name = "") {
+        public void AddWorksheet(string Name = "") {
             Excel.Worksheet temp = XlWorksheet;
             XlWorksheet = XlWorkbook.Worksheets.Add() as Excel.Worksheet;
-            if (Name != "") XlWorksheet.Name = Name;
+            if (!string.IsNullOrEmpty(Name)) XlWorksheet.Name = Name;
             XlWorksheet = temp;
         }
 
-        public void DeleteTab(string Name = "") {
-            if (Name != "") XlWorksheet = XlWorkbook.Worksheets[Name] as Excel.Worksheet;
+        public void DeleteWorksheet(string Name = "") {
+            if (!string.IsNullOrEmpty(Name)) XlWorksheet = XlWorkbook.Worksheets[Name] as Excel.Worksheet;
             XlWorksheet.Delete();
+        }
+
+        public string[] GetWorksheetNames() {
+            var t = new System.Collections.Generic.List<string>();
+            foreach (Excel.Worksheet s in XlWorkbook.Worksheets) {
+                t.Add(s.Name);
+            }
+            return t.ToArray();
         }
 
         public void Close() {
@@ -228,7 +236,7 @@ namespace HandleExcel {
             if (Size > 0) XlRange.Font.Size = Size;
             if (AutoFit) XlRange.EntireColumn.AutoFit();
             if (BGColor != -1) XlRange.Interior.ColorIndex = BGColor;
-            if (FontName != "") XlRange.Font.Name = FontName;
+            if (!string.IsNullOrEmpty(FontName)) XlRange.Font.Name = FontName;
 
             if (WrapText != null) XlRange.WrapText = WrapText;
             XlRange = XlApplication.Range[r];
@@ -315,7 +323,7 @@ namespace HandleExcel {
             pageSetup.RightMargin = RightMargin;
             pageSetup.TopMargin = TopMargin;
             pageSetup.BottomMargin = BottomMargin;
-            if (FooterText != "") {
+            if (!string.IsNullOrEmpty(FooterText)) {
                 switch (FooterPosition) {
                     case FooterPosition.Left:
                         pageSetup.LeftFooter = FooterText;
@@ -328,7 +336,7 @@ namespace HandleExcel {
                         break;
                 }
             }
-            if (HeaderText != "") {
+            if (!string.IsNullOrEmpty(HeaderText)) {
                 switch (HeaderPosition) {
                     case HeaderPosition.Left:
                         pageSetup.LeftHeader = HeaderText;
@@ -428,24 +436,7 @@ namespace HandleExcel {
             Y = 1;
         }
 
-        #region Internal functions
-        ~HandleExcel() {
-            Close();
-        }
-
-        public void Dispose() {
-            Close();
-        }
-
-        private void MsgboxOrWrite(string text, string title = "", System.Windows.MessageBoxImage icon = System.Windows.MessageBoxImage.None) {
-            if (is_console_app) {
-                Console.WriteLine(text);
-            } else {
-                System.Windows.MessageBox.Show(text, title, System.Windows.MessageBoxButton.OK, icon);
-            }
-        }
-
-        private string IndexToLetter(int colIndex) {
+        public static string IndexToLetter(int colIndex) {
             if (colIndex < 1) return "A";
             int div = colIndex;
             string colLetter = string.Empty;
@@ -455,6 +446,18 @@ namespace HandleExcel {
                 div = (div - modnum) / 26;
             }
             return colLetter;
+        }
+
+        #region Internal functions
+        ~HandleExcel() { Close(); }
+        public void Dispose() { Close(); }
+
+        private void MsgboxOrWrite(string text, string title = "", System.Windows.MessageBoxImage icon = System.Windows.MessageBoxImage.None) {
+            if (is_console_app) {
+                Console.WriteLine(text);
+            } else {
+                System.Windows.MessageBox.Show(text, title, System.Windows.MessageBoxButton.OK, icon);
+            }
         }
         #endregion
     }
