@@ -58,7 +58,7 @@ namespace HandleExcel {
         public int ActiveColumn { get { return Y; } }
         public string FileName { get { return XlWorkbook.Name; } }
         public int GetRowCount { get { return XlWorksheet.UsedRange.Rows.Count; } }
-        public int GetColumnCount { get { return XlWorksheet.Columns.Count; } }
+        public int GetColumnCount { get { return XlWorksheet.UsedRange.Columns.Count; } }
 
         public HandleExcel(string Path = "", string Password = "") {
             // Excel Dll only works with en-US locale. If the locale is different, this line enforces en-US.
